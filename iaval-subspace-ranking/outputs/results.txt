@@ -1,0 +1,82 @@
+IAVAL subspace-ranking prototype - RESULTS ON SIMULATED DATA (NOT DESI)
+seed=42  N=50000  properties=10  projections=45
+injected: dusty_reddened=500, bal_like=400, artefact=200; true rare = 900 (0.0180 of catalogue = random-ordering precision)
+anomaly threshold tau=0.7823 (top 3% of I); n_mc=16; MC shortlist size=2584
+
+== Precision/recall vs baselines (truth = dusty_reddened + bal_like) ==
+                      P@100  P@200  P@500  P@1000   R@100   R@200   R@500  R@1000  artefact@500  runtime_s
+method                                                                                                    
+random                 0.02  0.020  0.020   0.016  0.0022  0.0044  0.0111  0.0178         0.002     0.0003
+mahalanobis            0.03  0.085  0.254   0.299  0.0033  0.0189  0.1411  0.3322         0.390     0.0489
+isolation_forest       0.13  0.190  0.228   0.217  0.0144  0.0422  0.1267  0.2411         0.258     0.8602
+iavalss aware (full)   0.39  0.300  0.188   0.146  0.0433  0.0667  0.1044  0.1622         0.042    27.8524
+iavalss plain I        0.15  0.125  0.118   0.115  0.0167  0.0278  0.0656  0.1278         0.120    16.4685
+
+== Ablation ==
+                                 P@100  P@200  P@500  P@1000   R@100   R@200   R@500  R@1000  artefact@500
+method                                                                                                    
+full (MC + DQ)                    0.39  0.300  0.188   0.146  0.0433  0.0667  0.1044  0.1622         0.042
+no uncertainty stage (DQ only)    0.24  0.195  0.142   0.113  0.0267  0.0433  0.0789  0.1256         0.000
+no data-quality stage (MC only)   0.05  0.105  0.142   0.124  0.0056  0.0233  0.0789  0.1378         0.204
+neither (plain I)                 0.15  0.125  0.118   0.115  0.0167  0.0278  0.0656  0.1278         0.120
+
+== Weight sensitivity (aware pipeline, shortlist fixed) ==
+                             w_density  w_dist   w_lof  P@500_aware  P@500_plainI  artefact@500_aware
+weights                                                                                              
+equal                           0.3333  0.3333  0.3333        0.188         0.118               0.042
+only density_contrast           1.0000  0.0000  0.0000        0.048         0.016               0.042
+only distribution_deviation     0.0000  1.0000  0.0000        0.194         0.064               0.024
+only local_outlyingness         0.0000  0.0000  1.0000        0.186         0.090               0.020
+random_0                        0.3955  0.5930  0.0115        0.142         0.094               0.010
+random_1                        0.0010  0.2522  0.7468        0.198         0.098               0.020
+random_2                        0.1587  0.1779  0.6634        0.210         0.116               0.020
+random_3                        0.6482  0.3517  0.0001        0.110         0.088               0.030
+random_4                        0.6652  0.0213  0.3135        0.136         0.054               0.114
+random_5                        0.1950  0.7236  0.0813        0.186         0.108               0.026
+random_6                        0.1672  0.8126  0.0202        0.176         0.102               0.008
+random_7                        0.0698  0.5310  0.3992        0.196         0.124               0.020
+random_8                        0.6685  0.1591  0.1724        0.152         0.078               0.080
+random_9                        0.4748  0.4423  0.0829        0.144         0.106               0.030
+random_10                       0.1069  0.6202  0.2729        0.220         0.120               0.020
+random_11                       0.2726  0.3345  0.3930        0.198         0.120               0.048
+random_12                       0.6439  0.0338  0.3223        0.142         0.054               0.088
+random_13                       0.3105  0.5241  0.1654        0.182         0.114               0.030
+random_14                       0.3023  0.5271  0.1706        0.182         0.116               0.030
+random_15                       0.2985  0.0424  0.6591        0.162         0.086               0.088
+random_16                       0.3802  0.0921  0.5276        0.164         0.090               0.086
+random_17                       0.1573  0.4084  0.4343        0.212         0.128               0.020
+random_18                       0.3416  0.4186  0.2398        0.178         0.118               0.036
+random_19                       0.0475  0.7626  0.1899        0.214         0.122               0.020
+random Dirichlet weights (n=20): P@500_aware mean=0.1752 std=0.0304 min=0.1100 max=0.2200
+
+== Rank stability (top-500 Jaccard vs original; 2 re-drawn catalogues) ==
+                      jaccard@500  n_realisations
+method                                           
+mahalanobis                0.5038               2
+isolation_forest           0.4308               2
+iavalss aware (full)       0.3012               2
+iavalss plain I            0.1521               2
+(random-ordering expectation ~ 0.0050)
+
+== Mean p_artefact and P_anomaly by simulated label ==
+                p_artefact  P_anomaly
+sim_label                            
+artefact            0.8452     0.3294
+bal_like            0.1934     0.0342
+dusty_reddened      0.1754     0.0609
+normal              0.1899     0.0056
+
+== Composition of aware top-100 / top-500 ==
+                top100  top500
+sim_label                     
+normal              58     385
+dusty_reddened      27      65
+bal_like            12      29
+artefact             3      21
+
+== Runtime (s, this machine) ==
+subspace_scoring_s=16.5, monte_carlo_s=11.4, artefact_stage_s=0.0, total_s=27.9
+whole demo wall-clock = 91.2
+
+== Example explanation (rank 1) ==
+Ranked on 3 projections: g_r vs log_ew (score 0.91; mainly local outlyingness: it is isolated relative to its local neighbours (local-outlier-factor-like)); r_z vs log_ew (score 0.88; mainly distribution deviation: it has a combination of values unexpected from the two properties' marginal distributions); r_z vs log_lbol (score 0.83; mainly local outlyingness: it is isolated relative to its local neighbours (local-outlier-factor-like)). Properties driving it: log_ew=1.84 (+0.5 robust-sigma from the catalogue median; measured to +/-0.051), r_z=1.32 (+5.4 robust-sigma from the catalogue median; measured to +/-0.064), g_r=1.5 (+6.0 robust-sigma from the catalogue median; measured to +/-0.051). P(anomaly | measurement errors)=0.88; artefact probability=0.00.
